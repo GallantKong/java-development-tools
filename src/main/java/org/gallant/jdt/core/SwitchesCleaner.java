@@ -1,0 +1,202 @@
+package org.gallant.jdt.core;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Annotation;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.MemberValuePair;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
+import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+
+/**
+ * @author kongyong
+ * @date 2019/10/18
+ */
+public class SwitchesCleaner extends ASTVisitor {
+
+    private static final String SWITCH_UTILS = "SwitchUtils";
+    private static final String SWITCHER = "Switcher";
+    private static final String OPENED = "opened";
+    private static final String VALUE = "Value";
+    private static final String GETTER = "Getter";
+    private static final String GETTER_METHOD_NAME = "get";
+    private static final String DEFAULT_PLACEHOLDER_PREFIX = "${";
+    private static final String DEFAULT_VALUE_SEPARATOR = ":";
+    private static final String QUOTATION = "\"";
+    private ASTRewrite astRewrite;
+    private Map<String, String> switchKeyFields = new HashMap<>(8);
+
+    SwitchesCleaner(ASTRewrite astRewrite, String... switchKeys) {
+        this.astRewrite = astRewrite;
+        if (switchKeys != null) {
+            for (String switchKey : switchKeys) {
+                switchKeyFields.put(switchKey, null);
+            }
+        }
+    }
+
+    @Override
+    public boolean visit(IfStatement node) {
+        if (node.getExpression() != null) {
+            Statement statement = null;
+            boolean needReplace = false;
+            // 处理开关为true的场景，例如：if (SwitchUtils.currentCityOpen(switchesNewBywayDegreeCal, order.getCityId()))
+            if (isSwitchUtilsExpression(node.getExpression())) {
+                statement = node.getThenStatement();
+                needReplace = true;
+            }
+            // 处理开关为false的场景，例如：if(!SwitchUtils.currentCityOpen(openBywaydegreeLog, order.getCityId()))
+            if (isSwitchUtilsPrefixExpression(node.getExpression())) {
+                statement = node.getElseStatement();
+                needReplace = true;
+            }
+            if (needReplace) {
+                astRewrite.replace(node, statement, null);
+            }
+        }
+        return super.visit(node);
+    }
+
+    @Override
+    public boolean visit(InfixExpression node) {
+        // 处理开关与其他条件共同判断场景，例如：if (platformId != null && SwitchUtils.currentCityOpen(null, order.getCityId()) && orderType != null)
+        if (isSwitchUtilsExpression(node.getLeftOperand())) {
+            astRewrite.replace(node.getLeftOperand(), null, null);
+        }
+        if (isSwitchUtilsExpression(node.getRightOperand())) {
+            astRewrite.replace(node.getRightOperand(), null, null);
+        }
+        return super.visit(node);
+    }
+
+    @Override
+    public boolean visit(FieldDeclaration node) {
+        // 加载配置的key与配置key对应属性名
+        List modifiers = node.modifiers();
+        if (CollectionUtils.isNotEmpty(modifiers)) {
+            for (Object obj : modifiers) {
+                if (obj instanceof Annotation) {
+                    Annotation annotation = (Annotation) obj;
+                    String switchKey = null;
+                    if (VALUE.equals(annotation.getTypeName().toString())) {
+                        SingleMemberAnnotation sma = (SingleMemberAnnotation) annotation;
+                        switchKey = sma.getValue().toString();
+                    } else if (SWITCHER.equals(annotation.getTypeName().toString())) {
+                        NormalAnnotation na = (NormalAnnotation) annotation;
+                        List valueNodes = na.values();
+                        for (Object valueObj : valueNodes) {
+                            if (valueObj instanceof MemberValuePair) {
+                                MemberValuePair value = (MemberValuePair) valueObj;
+                                switchKey = value.getValue().toString();
+                            }
+                        }
+                    }
+                    if (StringUtils.isNotBlank(switchKey)) {
+                        switchKey = resolveSwitchKey(switchKey);
+                        String matchedKey = matchedKey(switchKey);
+                        if (matchedKey != null) {
+                            List fragments = node.fragments();
+                            if (CollectionUtils.isNotEmpty(fragments)) {
+                                Object fragmentObj = fragments.get(0);
+                                if (fragmentObj instanceof VariableDeclarationFragment) {
+                                    VariableDeclarationFragment vdf = (VariableDeclarationFragment) fragmentObj;
+                                    switchKeyFields.put(matchedKey, vdf.getName().getIdentifier());
+                                    astRewrite.replace(node, null, null);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return super.visit(node);
+    }
+
+    private boolean isSwitchUtilsExpression(Expression expression){
+        boolean isSwitchExpression = false;
+        if (expression instanceof MethodInvocation && isSwitch(expression)) {
+            isSwitchExpression = true;
+        }
+        return isSwitchExpression;
+    }
+
+    private boolean isSwitchUtilsPrefixExpression(Expression expression){
+        boolean isSwitchExpression = false;
+        if (expression instanceof PrefixExpression && isSwitch(((PrefixExpression) expression).getOperand())) {
+            isSwitchExpression = true;
+        }
+        return isSwitchExpression;
+    }
+
+    private String matchedKey(String switchKey){
+        String matchedKey = null;
+        Set<String> switchKeys = switchKeyFields.keySet();
+        if (switchKeys.size() > 0) {
+            for (String key : switchKeys) {
+                if (StringUtils.isNotBlank(switchKey) && StringUtils.isNotBlank(key) && switchKey.equals(key)) {
+                    matchedKey = key;
+                }
+            }
+        }
+        return matchedKey;
+    }
+
+    private boolean isSwitch(ASTNode node){
+        boolean isSwitch = false;
+        if (node instanceof MethodInvocation) {
+            MethodInvocation mi = (MethodInvocation) node;
+            Expression expression = mi.getExpression();
+            List arguments = mi.arguments();
+            if (expression instanceof SimpleName) {
+                SimpleName sn = (SimpleName) expression;
+                // 处理场景：SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
+                if (SWITCH_UTILS.equals(sn.getIdentifier())) {
+                    if (CollectionUtils.isNotEmpty(arguments)) {
+                        for (Object arg : arguments) {
+                            if (arg instanceof SimpleName) {
+                                SimpleName argName = (SimpleName) arg;
+                                if (switchKeyFields.values().contains(argName.getIdentifier())) {
+                                    isSwitch = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                // 处理场景：if (switches.opened(1))
+                if (!isSwitch && switchKeyFields.values().contains(sn.getIdentifier())) {
+                    isSwitch = OPENED.equals(mi.getName().getIdentifier());
+                }
+            }
+        }
+        return isSwitch;
+    }
+    private String resolveSwitchKey(String value) {
+        String switchKey = value;
+        if (value.contains(DEFAULT_PLACEHOLDER_PREFIX)) {
+            switchKey = value.substring(value.indexOf(DEFAULT_PLACEHOLDER_PREFIX) + DEFAULT_PLACEHOLDER_PREFIX.length(),
+                    value.indexOf(DEFAULT_VALUE_SEPARATOR));
+        }
+        if (switchKey.startsWith(QUOTATION)) {
+            switchKey = switchKey.substring(1);
+        }
+        if (switchKey.endsWith(QUOTATION)) {
+            switchKey = switchKey.substring(0, switchKey.length() - 1);
+        }
+        return switchKey;
+    }
+}
