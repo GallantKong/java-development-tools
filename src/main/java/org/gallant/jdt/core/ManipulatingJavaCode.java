@@ -51,7 +51,7 @@ public class ManipulatingJavaCode {
 
         // description of the change
         SimpleName oldName = ((TypeDeclaration)astRoot.types().get(0)).getName();
-        SimpleName newName = astRoot.getAST().newSimpleName("Y");
+        SimpleName newName = astRoot.getAST().newSimpleName(oldName+"New");
         astRewrite.replace(oldName, newName, null);
 
         SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, keys);
