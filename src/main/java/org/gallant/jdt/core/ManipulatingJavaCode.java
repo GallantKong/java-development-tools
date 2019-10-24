@@ -55,7 +55,11 @@ public class ManipulatingJavaCode {
         SimpleName newName = astRoot.getAST().newSimpleName("Y");
         astRewrite.replace(oldName, newName, null);
 
-        SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, "switches-open-bywaydegree-log", "test-city");
+        String[] keys = new String[]{"switches-open-bywaydegree-log", "test-city", "switches-newAngle"};
+        SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, keys);
+        // 1. 正常属性开关清理
+        astRoot.accept(switchesFinder);
+        // 2. 开关工具类或开关bean清理
         astRoot.accept(switchesFinder);
 
         // computation of the text edits

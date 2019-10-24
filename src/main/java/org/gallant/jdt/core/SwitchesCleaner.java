@@ -14,12 +14,15 @@ import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MemberValuePair;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
@@ -33,13 +36,15 @@ public class SwitchesCleaner extends ASTVisitor {
     private static final String SWITCHER = "Switcher";
     private static final String OPENED = "opened";
     private static final String VALUE = "Value";
-    private static final String GETTER = "Getter";
-    private static final String GETTER_METHOD_NAME = "get";
     private static final String DEFAULT_PLACEHOLDER_PREFIX = "${";
     private static final String DEFAULT_VALUE_SEPARATOR = ":";
     private static final String QUOTATION = "\"";
+    private static final String TYPE_METHOD_FMT = "%s.%s";
+    private static final String GET = "get";
     private ASTRewrite astRewrite;
     private Map<String, String> switchKeyFields = new HashMap<>(8);
+    private Map<String, String> switchFieldKeys = new HashMap<>(8);
+    private Map<String, String> switchKeyMethods = new HashMap<>(8);
 
     SwitchesCleaner(ASTRewrite astRewrite, String... switchKeys) {
         this.astRewrite = astRewrite;
@@ -116,6 +121,7 @@ public class SwitchesCleaner extends ASTVisitor {
                                 if (fragmentObj instanceof VariableDeclarationFragment) {
                                     VariableDeclarationFragment vdf = (VariableDeclarationFragment) fragmentObj;
                                     switchKeyFields.put(matchedKey, vdf.getName().getIdentifier());
+                                    switchFieldKeys.put(vdf.getName().getIdentifier(), matchedKey);
                                     astRewrite.replace(node, null, null);
                                 }
                             }
@@ -124,6 +130,13 @@ public class SwitchesCleaner extends ASTVisitor {
                 }
             }
         }
+        return super.visit(node);
+    }
+
+    @Override
+    public boolean visit(ReturnStatement node) {
+        // 加载与开关相关的方法信息
+        isSwitch(node.getExpression());
         return super.visit(node);
     }
 
@@ -162,6 +175,7 @@ public class SwitchesCleaner extends ASTVisitor {
             MethodInvocation mi = (MethodInvocation) node;
             Expression expression = mi.getExpression();
             List arguments = mi.arguments();
+            String methodName = mi.getName().getIdentifier();
             if (expression instanceof SimpleName) {
                 SimpleName sn = (SimpleName) expression;
                 // 处理场景：SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
@@ -174,6 +188,7 @@ public class SwitchesCleaner extends ASTVisitor {
                                     isSwitch = true;
                                 }
                             }
+                            loadSwitchKeyMethods(node, arg);
                         }
                     }
                 }
@@ -181,10 +196,46 @@ public class SwitchesCleaner extends ASTVisitor {
                 if (!isSwitch && switchKeyFields.values().contains(sn.getIdentifier())) {
                     isSwitch = OPENED.equals(mi.getName().getIdentifier());
                 }
+                // 处理场景：AbstractByWayDegreeFilter.isOpenSwitchesNewAngle(1)
+                if (!isSwitch) {
+                    String name = String.format(TYPE_METHOD_FMT, sn.getIdentifier(), methodName);
+                    String name1 = name.substring(0, 1).toLowerCase() + name.substring(1);
+                    isSwitch = switchKeyMethods.containsValue(name) || switchKeyMethods.containsValue(name1);
+                }
             }
         }
         return isSwitch;
     }
+
+    private void loadSwitchKeyMethods(ASTNode node, Object arg){
+        // 处理场景：SwitchUtils.currentCityOpen(switchConfigUtil.getSwitchesNewAngle(), cityId)
+        if (arg instanceof MethodInvocation) {
+            MethodInvocation getter = (MethodInvocation) arg;
+            String getterMethodName = getter.getName().getIdentifier();
+            if (getterMethodName.startsWith(GET)) {
+                String switchFieldName = getterMethodName.substring(GET.length());
+                switchFieldName = switchFieldName.substring(0, 1).toLowerCase() + switchFieldName.substring(1);
+                if (switchKeyFields.values().contains(switchFieldName)) {
+                    // 仅记录开关关联的方法信息
+                    ASTNode returnNode = node.getParent();
+                    if (returnNode instanceof ReturnStatement) {
+                        ASTNode parent = returnNode.getParent();
+                        while (parent != null) {
+                            if (parent instanceof MethodDeclaration) {
+                                MethodDeclaration methodDeclaration = (MethodDeclaration) parent;
+                                String methodName = methodDeclaration.getName().getIdentifier();
+                                String typeName = ((TypeDeclaration) parent.getParent()).getName().getIdentifier();
+                                switchKeyMethods.put(switchFieldKeys.get(switchFieldName), String.format(TYPE_METHOD_FMT, typeName, methodName));
+                                break;
+                            }
+                            parent = parent.getParent();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private String resolveSwitchKey(String value) {
         String switchKey = value;
         if (value.contains(DEFAULT_PLACEHOLDER_PREFIX)) {
