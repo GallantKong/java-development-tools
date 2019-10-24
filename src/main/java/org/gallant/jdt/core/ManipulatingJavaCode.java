@@ -1,9 +1,12 @@
 package org.gallant.jdt.core;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -12,6 +15,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.TextEdit;
 
@@ -22,14 +26,9 @@ import org.eclipse.text.edits.TextEdit;
 @Slf4j
 public class ManipulatingJavaCode {
 
-    private static void switchClean(String javaFilePath) throws Exception {
-        String src;
-        try {
-            src = FileUtils.readFileToString(new File(javaFilePath), "utf8");
-        } catch (Exception var5) {
-            log.error("读取源文件失败", var5);
-            return;
-        }
+    private static void switchClean(File javaFile, String[] keys)
+            throws IOException, BadLocationException {
+        String src = FileUtils.readFileToString(javaFile, "utf8");
         if (StringUtils.isBlank(src)) {
             log.error("源文件为空");
             return;
@@ -55,11 +54,7 @@ public class ManipulatingJavaCode {
         SimpleName newName = astRoot.getAST().newSimpleName("Y");
         astRewrite.replace(oldName, newName, null);
 
-        String[] keys = new String[]{"switches-open-bywaydegree-log", "test-city", "switches-newAngle"};
         SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, keys);
-        // 1. 正常属性开关清理
-        astRoot.accept(switchesFinder);
-        // 2. 开关工具类或开关bean清理
         astRoot.accept(switchesFinder);
 
         // computation of the text edits
@@ -72,8 +67,23 @@ public class ManipulatingJavaCode {
         System.out.println(document.get());
     }
 
+    private static void switchCleanByDir(String dir, String[] keys) throws IOException, BadLocationException {
+        // 1. 正常属性开关清理
+        Collection<File> files = FileUtils.listFiles(new File(dir),
+                FileFilterUtils.suffixFileFilter("java"), FileFilterUtils.trueFileFilter());
+        for (File file : files) {
+            switchClean(file, keys);
+        }
+        // 2. 开关工具类或开关bean清理
+        for (File file : files) {
+            switchClean(file, keys);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        switchClean("D:/tmp/workspace/dispatch-filter-rules/src/main/java/com/dianwoba/dispatch/filter/rules/riderfilter/AbstractByWayDegreeFilter.java");
+        String[] keys = new String[]{"switches-open-bywaydegree-log", "test-city", "switches-newAngle"};
+        switchClean(new File("D:/tmp/workspace/dispatch-filter-rules/src/main/java/com/dianwoba/dispatch/filter/rules/riderfilter/AbstractByWayDegreeFilter.java"), keys);
+        switchCleanByDir("D:\\tmp\\workspace\\dispatch-bywaydegree", keys);
     }
 
 }

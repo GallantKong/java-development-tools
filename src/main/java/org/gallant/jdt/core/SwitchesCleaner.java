@@ -1,9 +1,9 @@
 package org.gallant.jdt.core;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -42,15 +42,15 @@ public class SwitchesCleaner extends ASTVisitor {
     private static final String TYPE_METHOD_FMT = "%s.%s";
     private static final String GET = "get";
     private ASTRewrite astRewrite;
-    private Map<String, String> switchKeyFields = new HashMap<>(8);
-    private Map<String, String> switchFieldKeys = new HashMap<>(8);
-    private Map<String, String> switchKeyMethods = new HashMap<>(8);
+    private static Map<String, String> switchKeyFields = new ConcurrentHashMap<>(8);
+    private static Map<String, String> switchFieldKeys = new ConcurrentHashMap<>(8);
+    private static Map<String, String> switchKeyMethods = new ConcurrentHashMap<>(8);
 
     SwitchesCleaner(ASTRewrite astRewrite, String... switchKeys) {
         this.astRewrite = astRewrite;
         if (switchKeys != null) {
             for (String switchKey : switchKeys) {
-                switchKeyFields.put(switchKey, null);
+                switchKeyFields.put(switchKey, "-1");
             }
         }
     }
