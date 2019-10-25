@@ -147,8 +147,13 @@ public class SwitchesCleaner extends ASTVisitor {
     @Override
     public boolean visit(ReturnStatement node) {
         // 加载与开关相关的方法信息
-        if (isSwitch(node.getExpression())) {
-            ASTNode astNode = node.getParent();
+        boolean isGetSwitchFieldMethod = (node.getExpression() instanceof SimpleName && SwitchMetaStore.switchFields().contains(((SimpleName) node.getExpression()).getIdentifier()));
+        if (isSwitch(node.getExpression()) || isGetSwitchFieldMethod) {
+            ASTNode parent = node.getParent();
+            while (!(parent instanceof MethodDeclaration)) {
+                parent = parent.getParent();
+            }
+            astRewrite.replace(parent, null, null);
         }
         return super.visit(node);
     }
@@ -203,7 +208,9 @@ public class SwitchesCleaner extends ASTVisitor {
                             }
                             // 加载数据场景：return SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
                             // 从ReturnStatement语句加载开关与方法对应关系
-                            loadSwitchKeyMethods(arg);
+                            if (!isSwitch) {
+                                isSwitch = loadSwitchKeyMethods(arg);
+                            }
                         }
                     }
                 }
@@ -233,11 +240,12 @@ public class SwitchesCleaner extends ASTVisitor {
     private boolean isSwitch(SimpleName sn, String methodName){
         String name = String.format(TYPE_METHOD_FMT, sn.getIdentifier(), methodName);
         String first = name.substring(0, 1);
-        String name1 = Character.isUpperCase(first.toCharArray()[0]) ? first.toLowerCase() : first.toUpperCase() + name.substring(1);
+        String name1 = (Character.isUpperCase(first.toCharArray()[0]) ? first.toLowerCase() : first.toUpperCase()) + name.substring(1);
         return SwitchMetaStore.switchMethods().contains(name) || SwitchMetaStore.switchMethods().contains(name1);
     }
 
-    private void loadSwitchKeyMethods(Object arg){
+    private boolean loadSwitchKeyMethods(Object arg){
+        boolean isSwitch = false;
         if (arg instanceof MethodInvocation) {
             MethodInvocation getter = (MethodInvocation) arg;
             String getterMethodName = getter.getName().getIdentifier();
@@ -256,6 +264,7 @@ public class SwitchesCleaner extends ASTVisitor {
                                 String methodName = methodDeclaration.getName().getIdentifier();
                                 String typeName = ((TypeDeclaration) parent.getParent()).getName().getIdentifier();
                                 SwitchMetaStore.addSwitchKeyMethodByFieldName(switchFieldName, String.format(TYPE_METHOD_FMT, typeName, methodName));
+                                isSwitch = true;
                                 break;
                             }
                             parent = parent.getParent();
@@ -264,6 +273,7 @@ public class SwitchesCleaner extends ASTVisitor {
                 }
             }
         }
+        return isSwitch;
     }
 
     private String resolveSwitchKey(String value) {
