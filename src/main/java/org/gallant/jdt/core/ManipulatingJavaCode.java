@@ -49,11 +49,6 @@ public class ManipulatingJavaCode {
         // creation of ASTRewrite
         ASTRewrite astRewrite = ASTRewrite.create(astRoot.getAST());
 
-        // description of the change
-        SimpleName oldName = ((TypeDeclaration)astRoot.types().get(0)).getName();
-        SimpleName newName = astRoot.getAST().newSimpleName(oldName+"New");
-        astRewrite.replace(oldName, newName, null);
-
         SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, keys);
         // 1. 正常属性开关清理，收集开关与属性对应关系
         astRoot.accept(switchesFinder);
@@ -67,7 +62,9 @@ public class ManipulatingJavaCode {
         edits.apply(document);
 
         // update of the compilation unit
-        System.out.println(document.get());
+        if (!src.equals(document.get())) {
+            log.info(document.get());
+        }
     }
 
     public static void switchCleanByDir(String dir, String[] keys) throws IOException, BadLocationException {
@@ -77,6 +74,7 @@ public class ManipulatingJavaCode {
         for (File file : files) {
             switchClean(file, keys);
         }
+        SwitchMetaStore.println();
         // 2. 开关工具类或开关bean清理，开关属性与开关方法不在同一个类
         for (File file : files) {
             switchClean(file, keys);

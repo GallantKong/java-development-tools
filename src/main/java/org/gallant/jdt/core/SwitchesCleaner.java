@@ -43,11 +43,7 @@ public class SwitchesCleaner extends ASTVisitor {
 
     SwitchesCleaner(ASTRewrite astRewrite, String... switchKeys) {
         this.astRewrite = astRewrite;
-        if (switchKeys != null) {
-            for (String switchKey : switchKeys) {
-                SwitchMetaStore.getSwitchKeyFields().put(switchKey, "-1");
-            }
-        }
+        SwitchMetaStore.initSwitchKeyFields(switchKeys);
     }
 
     @Override
@@ -115,8 +111,7 @@ public class SwitchesCleaner extends ASTVisitor {
                                 Object fragmentObj = fragments.get(0);
                                 if (fragmentObj instanceof VariableDeclarationFragment) {
                                     VariableDeclarationFragment vdf = (VariableDeclarationFragment) fragmentObj;
-                                    SwitchMetaStore.getSwitchKeyFields().put(matchedKey, vdf.getName().getIdentifier());
-                                    SwitchMetaStore.getSwitchFieldKeys().put(vdf.getName().getIdentifier(), matchedKey);
+                                    SwitchMetaStore.addSwitchKeyField(matchedKey, vdf.getName().getIdentifier());
                                     astRewrite.replace(node, null, null);
                                 }
                             }
@@ -153,7 +148,7 @@ public class SwitchesCleaner extends ASTVisitor {
 
     private String matchedKey(String switchKey){
         String matchedKey = null;
-        Set<String> switchKeys = SwitchMetaStore.getSwitchKeyFields().keySet();
+        Set<String> switchKeys = SwitchMetaStore.switchKeySet();
         if (switchKeys.size() > 0) {
             for (String key : switchKeys) {
                 if (StringUtils.isNotBlank(switchKey) && StringUtils.isNotBlank(key) && switchKey.equals(key)) {
@@ -179,23 +174,26 @@ public class SwitchesCleaner extends ASTVisitor {
                         for (Object arg : arguments) {
                             if (arg instanceof SimpleName) {
                                 SimpleName argName = (SimpleName) arg;
-                                if (SwitchMetaStore.getSwitchKeyFields().values().contains(argName.getIdentifier())) {
+                                if (SwitchMetaStore.switchFields().contains(argName.getIdentifier())) {
                                     isSwitch = true;
                                 }
                             }
-                            loadSwitchKeyMethods(node, arg);
+                            // 加载数据场景：return SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
+                            // 从ReturnStatement语句加载开关与方法对应关系
+                            loadSwitchKeyMethods(mi, arg);
                         }
                     }
                 }
                 // 处理场景：if (switches.opened(1))
-                if (!isSwitch && SwitchMetaStore.getSwitchKeyFields().values().contains(sn.getIdentifier())) {
+                if (!isSwitch && SwitchMetaStore.switchFields().contains(sn.getIdentifier())) {
                     isSwitch = OPENED.equals(mi.getName().getIdentifier());
                 }
-                // 处理场景：AbstractByWayDegreeFilter.isOpenSwitchesNewAngle(1)
+                // 处理场景1：UtilOrBean.isOpenSwitchesNewAngle(1)
+                // 处理场景2：SwitchUtils.currentCityOpen(switchConfigUtil.getSwitchesNewAngle(), cityId)
                 if (!isSwitch) {
                     String name = String.format(TYPE_METHOD_FMT, sn.getIdentifier(), methodName);
                     String name1 = name.substring(0, 1).toLowerCase() + name.substring(1);
-                    isSwitch = SwitchMetaStore.getSwitchKeyMethods().containsValue(name) || SwitchMetaStore.getSwitchKeyMethods().containsValue(name1);
+                    isSwitch = SwitchMetaStore.switchMethods().contains(name) || SwitchMetaStore.switchMethods().contains(name1);
                 }
             }
         }
@@ -203,14 +201,13 @@ public class SwitchesCleaner extends ASTVisitor {
     }
 
     private void loadSwitchKeyMethods(ASTNode node, Object arg){
-        // 处理场景：SwitchUtils.currentCityOpen(switchConfigUtil.getSwitchesNewAngle(), cityId)
         if (arg instanceof MethodInvocation) {
             MethodInvocation getter = (MethodInvocation) arg;
             String getterMethodName = getter.getName().getIdentifier();
             if (getterMethodName.startsWith(GET)) {
                 String switchFieldName = getterMethodName.substring(GET.length());
                 switchFieldName = switchFieldName.substring(0, 1).toLowerCase() + switchFieldName.substring(1);
-                if (SwitchMetaStore.getSwitchKeyFields().values().contains(switchFieldName)) {
+                if (SwitchMetaStore.switchFields().contains(switchFieldName)) {
                     // 仅记录开关关联的方法信息
                     ASTNode returnNode = node.getParent();
                     if (returnNode instanceof ReturnStatement) {
@@ -220,7 +217,7 @@ public class SwitchesCleaner extends ASTVisitor {
                                 MethodDeclaration methodDeclaration = (MethodDeclaration) parent;
                                 String methodName = methodDeclaration.getName().getIdentifier();
                                 String typeName = ((TypeDeclaration) parent.getParent()).getName().getIdentifier();
-                                SwitchMetaStore.getSwitchKeyMethods().put(SwitchMetaStore.getSwitchFieldKeys().get(switchFieldName), String.format(TYPE_METHOD_FMT, typeName, methodName));
+                                SwitchMetaStore.addSwitchKeyMethodByFieldName(switchFieldName, String.format(TYPE_METHOD_FMT, typeName, methodName));
                                 break;
                             }
                             parent = parent.getParent();
