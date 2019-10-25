@@ -37,6 +37,10 @@ class SwitchMetaStore {
         switchKeyMethods.put(switchFieldKeys.get(fieldName), methodName);
     }
 
+    static void addSwitchKeyMethodIfAbsent(String switchKey, String methodName) {
+        switchKeyMethods.putIfAbsent(switchKey, methodName);
+    }
+
     static Set<String> switchKeySet(){
         return switchKeyFields.keySet();
     }
@@ -53,6 +57,10 @@ class SwitchMetaStore {
         switchKeyFields.clear();
         switchFieldKeys.clear();
         switchKeyMethods.clear();
+    }
+
+    static String getSwitchField(String switchKey) {
+        return switchKeyFields.get(switchKey);
     }
 
     static void println(){

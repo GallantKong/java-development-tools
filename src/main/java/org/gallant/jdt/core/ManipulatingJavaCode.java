@@ -12,8 +12,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -26,7 +24,7 @@ import org.eclipse.text.edits.TextEdit;
 @Slf4j
 public class ManipulatingJavaCode {
 
-    public static void switchClean(File javaFile, String[] keys)
+    private static void switchClean(File javaFile, String[] keys)
             throws IOException, BadLocationException {
         String src = FileUtils.readFileToString(javaFile, "utf8");
         if (StringUtils.isBlank(src)) {

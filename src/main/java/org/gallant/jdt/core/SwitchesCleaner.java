@@ -32,12 +32,14 @@ public class SwitchesCleaner extends ASTVisitor {
 
     private static final String SWITCH_UTILS = "SwitchUtils";
     private static final String SWITCHER = "Switcher";
+    private static final String GETTER = "Getter";
     private static final String OPENED = "opened";
     private static final String VALUE = "Value";
     private static final String DEFAULT_PLACEHOLDER_PREFIX = "${";
     private static final String DEFAULT_VALUE_SEPARATOR = ":";
     private static final String QUOTATION = "\"";
     private static final String TYPE_METHOD_FMT = "%s.%s";
+    private static final String TYPE_GET_METHOD_FMT = "%s.get%s";
     private static final String GET = "get";
     private ASTRewrite astRewrite;
 
@@ -70,6 +72,7 @@ public class SwitchesCleaner extends ASTVisitor {
 
     @Override
     public boolean visit(InfixExpression node) {
+        // IfStatement 可以处理，需要一层层向下遍历，直接通过visit访问处理
         // 处理开关与其他条件共同判断场景，例如：if (platformId != null && SwitchUtils.currentCityOpen(null, order.getCityId()) && orderType != null)
         if (isSwitchUtilsExpression(node.getLeftOperand())) {
             astRewrite.replace(node.getLeftOperand(), null, null);
@@ -82,13 +85,15 @@ public class SwitchesCleaner extends ASTVisitor {
 
     @Override
     public boolean visit(FieldDeclaration node) {
-        // 加载配置的key与配置key对应属性名
+        // 加载配置的key与配置key对应属性名，并删除开全国的开关属性
         List modifiers = node.modifiers();
         if (CollectionUtils.isNotEmpty(modifiers)) {
+            boolean hasGetter = false;
+            boolean hasSwitcher = false;
+            String switchKey = null;
             for (Object obj : modifiers) {
                 if (obj instanceof Annotation) {
                     Annotation annotation = (Annotation) obj;
-                    String switchKey = null;
                     if (VALUE.equals(annotation.getTypeName().toString())) {
                         SingleMemberAnnotation sma = (SingleMemberAnnotation) annotation;
                         switchKey = sma.getValue().toString();
@@ -101,6 +106,9 @@ public class SwitchesCleaner extends ASTVisitor {
                                 switchKey = value.getValue().toString();
                             }
                         }
+                        hasSwitcher = true;
+                    } else if (GETTER.equals(annotation.getTypeName().toString())) {
+                        hasGetter = true;
                     }
                     if (StringUtils.isNotBlank(switchKey)) {
                         switchKey = resolveSwitchKey(switchKey);
@@ -119,6 +127,19 @@ public class SwitchesCleaner extends ASTVisitor {
                     }
                 }
             }
+            // 如果存在Getter注解的属性，则将get+属性名称（首字母大写）方法存入属性映射：switchKeyMethods
+            if (StringUtils.isNotBlank(switchKey) && hasGetter && hasSwitcher) {
+                String switchField = SwitchMetaStore.getSwitchField(switchKey);
+                if (StringUtils.isNotBlank(switchField)) {
+                    String firstUpperCaseSwitchField = switchField.substring(0, 1).toUpperCase() + switchField.substring(1);
+                    ASTNode astNode = node.getParent();
+                    if (astNode instanceof TypeDeclaration) {
+                        TypeDeclaration typeDeclaration = (TypeDeclaration) astNode;
+                        SwitchMetaStore.addSwitchKeyMethodIfAbsent(switchKey,
+                                String.format(TYPE_GET_METHOD_FMT, typeDeclaration.getName().getIdentifier(), firstUpperCaseSwitchField));
+                    }
+                }
+            }
         }
         return super.visit(node);
     }
@@ -126,7 +147,9 @@ public class SwitchesCleaner extends ASTVisitor {
     @Override
     public boolean visit(ReturnStatement node) {
         // 加载与开关相关的方法信息
-        isSwitch(node.getExpression());
+        if (isSwitch(node.getExpression())) {
+            ASTNode astNode = node.getParent();
+        }
         return super.visit(node);
     }
 
@@ -164,12 +187,12 @@ public class SwitchesCleaner extends ASTVisitor {
         if (node instanceof MethodInvocation) {
             MethodInvocation mi = (MethodInvocation) node;
             Expression expression = mi.getExpression();
-            List arguments = mi.arguments();
             String methodName = mi.getName().getIdentifier();
             if (expression instanceof SimpleName) {
                 SimpleName sn = (SimpleName) expression;
-                // 处理场景：SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
+                // 处理场景1：if (SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId()))
                 if (SWITCH_UTILS.equals(sn.getIdentifier())) {
+                    List arguments = mi.arguments();
                     if (CollectionUtils.isNotEmpty(arguments)) {
                         for (Object arg : arguments) {
                             if (arg instanceof SimpleName) {
@@ -180,27 +203,41 @@ public class SwitchesCleaner extends ASTVisitor {
                             }
                             // 加载数据场景：return SwitchUtils.currentCityOpen(openBywaydegreeLog,order.getCityId())
                             // 从ReturnStatement语句加载开关与方法对应关系
-                            loadSwitchKeyMethods(mi, arg);
+                            loadSwitchKeyMethods(arg);
                         }
                     }
                 }
-                // 处理场景：if (switches.opened(1))
+                // 处理场景2：if (switches.opened(1))
                 if (!isSwitch && SwitchMetaStore.switchFields().contains(sn.getIdentifier())) {
                     isSwitch = OPENED.equals(mi.getName().getIdentifier());
                 }
-                // 处理场景1：UtilOrBean.isOpenSwitchesNewAngle(1)
-                // 处理场景2：SwitchUtils.currentCityOpen(switchConfigUtil.getSwitchesNewAngle(), cityId)
+                // 处理场景3：if (UtilOrBean.isOpenSwitchesNewAngle(1))
+                // 处理场景4：if (SwitchUtils.currentCityOpen(switchConfigUtil.getSwitchesNewAngle(), cityId))
                 if (!isSwitch) {
-                    String name = String.format(TYPE_METHOD_FMT, sn.getIdentifier(), methodName);
-                    String name1 = name.substring(0, 1).toLowerCase() + name.substring(1);
-                    isSwitch = SwitchMetaStore.switchMethods().contains(name) || SwitchMetaStore.switchMethods().contains(name1);
+                    isSwitch = isSwitch(sn, methodName);
+                }
+            }
+            // 处理场景5：if (switchesHolderBean.getNormalSwitches().opened(1))
+            if (!isSwitch && expression instanceof MethodInvocation) {
+                MethodInvocation getInvokeMethod = (MethodInvocation) expression;
+                Expression invokeExpression = getInvokeMethod.getExpression();
+                if (invokeExpression instanceof SimpleName) {
+                    SimpleName invokeName = (SimpleName) invokeExpression;
+                    isSwitch = isSwitch(invokeName, getInvokeMethod.getName().getIdentifier());
                 }
             }
         }
         return isSwitch;
     }
 
-    private void loadSwitchKeyMethods(ASTNode node, Object arg){
+    private boolean isSwitch(SimpleName sn, String methodName){
+        String name = String.format(TYPE_METHOD_FMT, sn.getIdentifier(), methodName);
+        String first = name.substring(0, 1);
+        String name1 = Character.isUpperCase(first.toCharArray()[0]) ? first.toLowerCase() : first.toUpperCase() + name.substring(1);
+        return SwitchMetaStore.switchMethods().contains(name) || SwitchMetaStore.switchMethods().contains(name1);
+    }
+
+    private void loadSwitchKeyMethods(Object arg){
         if (arg instanceof MethodInvocation) {
             MethodInvocation getter = (MethodInvocation) arg;
             String getterMethodName = getter.getName().getIdentifier();
@@ -209,6 +246,7 @@ public class SwitchesCleaner extends ASTVisitor {
                 switchFieldName = switchFieldName.substring(0, 1).toLowerCase() + switchFieldName.substring(1);
                 if (SwitchMetaStore.switchFields().contains(switchFieldName)) {
                     // 仅记录开关关联的方法信息
+                    ASTNode node = getter.getParent();
                     ASTNode returnNode = node.getParent();
                     if (returnNode instanceof ReturnStatement) {
                         ASTNode parent = returnNode.getParent();
