@@ -55,6 +55,9 @@ public class ManipulatingJavaCode {
         astRewrite.replace(oldName, newName, null);
 
         SwitchesCleaner switchesFinder = new SwitchesCleaner(astRewrite, keys);
+        // 1. 正常属性开关清理，收集开关与属性对应关系
+        astRoot.accept(switchesFinder);
+        // 2. 开关工具类或开关bean清理，根据收集的开关属性，收集开关与方法的对应关系，开关属性与开关方法在同一个类
         astRoot.accept(switchesFinder);
 
         // computation of the text edits
@@ -74,7 +77,7 @@ public class ManipulatingJavaCode {
         for (File file : files) {
             switchClean(file, keys);
         }
-        // 2. 开关工具类或开关bean清理
+        // 2. 开关工具类或开关bean清理，开关属性与开关方法不在同一个类
         for (File file : files) {
             switchClean(file, keys);
         }
