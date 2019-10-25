@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c3ef4fae-d6fa-478a-86e9-09b284f1f908" name="Default" comment="目录清理">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="c3ef4fae-d6fa-478a-86e9-09b284f1f908" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchMetaStore.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -20,13 +21,31 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="SwitchesCleaner.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SwitchesCleaner.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="93">
-              <caret line="44" column="54" selection-start-line="44" selection-start-column="39" selection-end-line="44" selection-end-column="54" />
+            <state relative-caret-position="302">
+              <caret line="83" column="9" selection-start-line="83" selection-start-column="9" selection-end-line="83" selection-end-column="9" />
               <folding>
                 <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SwitchMetaStore.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchMetaStore.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-5">
+              <caret line="9" column="28" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="28" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#646#647#0" expanded="true" />
+                <element signature="e#684#685#0" expanded="true" />
+                <element signature="e#746#747#0" expanded="true" />
+                <element signature="e#784#785#0" expanded="true" />
+                <element signature="e#847#848#0" expanded="true" />
+                <element signature="e#886#887#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -35,85 +54,11 @@
       <file leaf-file-name="ManipulatingJavaCode.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="8" lean-forward="true" selection-start-column="8" selection-end-column="28" />
+            <state relative-caret-position="204">
+              <caret line="56" column="56" lean-forward="true" selection-start-line="56" selection-start-column="56" selection-end-line="56" selection-end-column="56" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MainpulatingJavaCodeTest.java" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/test/java/MainpulatingJavaCodeTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
-              <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FileFilterUtils.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/filefilter/FileFilterUtils.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5985">
-              <caret line="341" column="26" selection-start-line="341" selection-start-column="26" selection-end-line="341" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="NameFileFilter.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/filefilter/NameFileFilter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="722">
-              <caret line="58" column="10" selection-start-line="58" selection-start-column="10" selection-end-line="58" selection-end-column="10" />
-              <folding>
-                <element signature="e#2044#2045#0" expanded="true" />
-                <element signature="e#2076#2077#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SuffixFileFilter.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/filefilter/SuffixFileFilter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="779">
-              <caret line="61" column="32" selection-start-line="61" selection-start-column="32" selection-end-line="61" selection-end-column="32" />
-              <folding>
-                <element signature="e#2146#2147#0" expanded="true" />
-                <element signature="e#2192#2193#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="IOCase.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/IOCase.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2641">
-              <caret line="160" column="48" selection-start-line="160" selection-start-column="44" selection-end-line="160" selection-end-column="48" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FileUtils.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/FileUtils.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8645">
-              <caret line="514" column="35" selection-start-line="514" selection-start-column="35" selection-end-line="514" selection-end-column="35" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DirectoryFileFilter.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6-sources.jar!/org/apache/commons/io/filefilter/DirectoryFileFilter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="456">
-              <caret line="40" column="13" selection-start-line="40" selection-start-column="13" selection-end-line="40" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -124,6 +69,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="Singleton" />
       </list>
     </option>
   </component>
@@ -172,10 +118,11 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesFinder.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/MyWorkingCopyOwner.java" />
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java" />
-        <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java" />
         <option value="$PROJECT_DIR$/src/test/java/MainpulatingJavaCodeTest.java" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchMetaStore.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java" />
       </list>
     </option>
   </component>
@@ -244,19 +191,6 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="core" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="java-development-tools" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java-development-tools" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="java-development-tools" type="b2602c69:ProjectViewProjectNode" />
-              <item name="java-development-tools" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -421,11 +355,18 @@
       <option name="project" value="LOCAL" />
       <updated>1571915069798</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="单测">
+      <created>1571967251660</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1571967251660</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="104072000" />
+    <option name="totallyTimeSpent" value="106707000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
@@ -443,7 +384,7 @@
       <window_info id="UI Designer" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.44802868" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Messages" order="8" visible="true" weight="0.32795697" />
+      <window_info anchor="bottom" id="Messages" order="8" weight="0.32795697" />
       <window_info anchor="right" id="Palette&#9;" order="3" />
       <window_info id="Image Layers" order="2" />
       <window_info anchor="right" id="Capture Analysis" order="3" />
@@ -474,7 +415,8 @@
     <MESSAGE value="gitignore" />
     <MESSAGE value="开关bean清理" />
     <MESSAGE value="目录清理" />
-    <option name="LAST_COMMIT_MESSAGE" value="目录清理" />
+    <MESSAGE value="单测" />
+    <option name="LAST_COMMIT_MESSAGE" value="单测" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -490,13 +432,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.resources/3.13.500/org.eclipse.core.resources-3.13.500-sources.jar!/org/eclipse/core/internal/resources/WorkspaceRoot.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="226">
-          <caret line="96" column="33" selection-start-line="96" selection-start-column="33" selection-end-line="96" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/eclipse/jdt/org.eclipse.jdt.core/3.16.0/org.eclipse.jdt.core-3.16.0-sources.jar!/org/eclipse/jdt/internal/core/ClassFileWorkingCopy.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="152">
@@ -704,13 +639,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/eclipse/jdt/org.eclipse.jdt.core/3.16.0/org.eclipse.jdt.core-3.16.0-sources.jar!/org/eclipse/jdt/core/dom/ASTNode.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="55">
-          <caret line="2807" column="22" selection-start-line="2807" selection-start-column="22" selection-end-line="2807" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/2.6/commons-io-2.6.jar!/org/apache/commons/io/filefilter/FileFilterUtils.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="177">
@@ -823,35 +751,58 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
+        <state relative-caret-position="76">
+          <caret line="28" column="7" lean-forward="true" selection-start-line="28" selection-start-column="7" selection-end-line="28" selection-end-column="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java">
+    <entry file="file://$PROJECT_DIR$/src/test/java/MainpulatingJavaCodeTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="93">
-          <caret line="44" column="54" selection-start-line="44" selection-start-column="39" selection-end-line="44" selection-end-column="54" />
+        <state relative-caret-position="228">
+          <caret line="12" column="96" lean-forward="true" selection-start-line="12" selection-start-column="96" selection-end-line="12" selection-end-column="96" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/eclipse/jdt/org.eclipse.jdt.core/3.16.0/org.eclipse.jdt.core-3.16.0-sources.jar!/org/eclipse/jdt/core/dom/ASTNode.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="226">
+          <caret line="2807" column="22" selection-start-line="2807" selection-start-column="22" selection-end-line="2807" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchMetaStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5">
+          <caret line="9" column="28" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="28" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#646#647#0" expanded="true" />
+            <element signature="e#684#685#0" expanded="true" />
+            <element signature="e#746#747#0" expanded="true" />
+            <element signature="e#784#785#0" expanded="true" />
+            <element signature="e#847#848#0" expanded="true" />
+            <element signature="e#886#887#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/ManipulatingJavaCode.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="8" lean-forward="true" selection-start-column="8" selection-end-column="28" />
+        <state relative-caret-position="204">
+          <caret line="56" column="56" lean-forward="true" selection-start-line="56" selection-start-column="56" selection-end-line="56" selection-end-column="56" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/java/MainpulatingJavaCodeTest.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/gallant/jdt/core/SwitchesCleaner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="12" column="28" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
+        <state relative-caret-position="302">
+          <caret line="83" column="9" selection-start-line="83" selection-start-column="9" selection-end-line="83" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

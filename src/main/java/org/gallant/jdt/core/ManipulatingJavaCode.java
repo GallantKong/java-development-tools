@@ -81,6 +81,7 @@ public class ManipulatingJavaCode {
         for (File file : files) {
             switchClean(file, keys);
         }
+        SwitchMetaStore.clear();
     }
 
 }
