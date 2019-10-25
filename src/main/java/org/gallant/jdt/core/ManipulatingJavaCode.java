@@ -26,7 +26,7 @@ import org.eclipse.text.edits.TextEdit;
 @Slf4j
 public class ManipulatingJavaCode {
 
-    private static void switchClean(File javaFile, String[] keys)
+    public static void switchClean(File javaFile, String[] keys)
             throws IOException, BadLocationException {
         String src = FileUtils.readFileToString(javaFile, "utf8");
         if (StringUtils.isBlank(src)) {
@@ -70,7 +70,7 @@ public class ManipulatingJavaCode {
         System.out.println(document.get());
     }
 
-    private static void switchCleanByDir(String dir, String[] keys) throws IOException, BadLocationException {
+    public static void switchCleanByDir(String dir, String[] keys) throws IOException, BadLocationException {
         // 1. 正常属性开关清理
         Collection<File> files = FileUtils.listFiles(new File(dir),
                 FileFilterUtils.suffixFileFilter("java"), FileFilterUtils.trueFileFilter());
@@ -81,12 +81,6 @@ public class ManipulatingJavaCode {
         for (File file : files) {
             switchClean(file, keys);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        String[] keys = new String[]{"switches-open-bywaydegree-log", "test-city", "switches-newAngle"};
-        switchClean(new File("D:/tmp/workspace/dispatch-filter-rules/src/main/java/com/dianwoba/dispatch/filter/rules/riderfilter/AbstractByWayDegreeFilter.java"), keys);
-        switchCleanByDir("D:\\tmp\\workspace\\dispatch-bywaydegree", keys);
     }
 
 }
